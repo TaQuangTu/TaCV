@@ -3,6 +3,7 @@ requires = [
     "setuptools>=42",
     "wheel",
     "numpy",
-    "opencv-python"
+    "opencv-python",
+    "torch"
 ]
 build-backend = "setuptools.build_meta"
