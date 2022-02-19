@@ -6,7 +6,7 @@ with open("README.md","r",encoding="utf-8") as fh:
 
 setup(
     name='tacv',
-    version='1.0.1',
+    version='1.0.2',
     packages= setuptools.find_packages(where="."),
     url='https://github.com/TaQuangTu/TaCV',
     license='',
