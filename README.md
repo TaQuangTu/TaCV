@@ -9,7 +9,7 @@ pip install tacv
 ### File utils
 #### Get all file paths from a directory
 ```python
-from tacv.fileUtils.fileutils import get_all_files
+from tacv.fileUtils import get_all_files
 file_paths = get_all_files("dir_name")
 ```
 Returns a list of file absolute paths, for example
@@ -18,7 +18,7 @@ Returns a list of file absolute paths, for example
 ```
 #### Save/load json data to/from file
 ```python
-from tacv.fileUtils.fileutils import save_json,load_json
+from tacv.fileUtils import save_json,load_json
 
 json_file = "myfile.json"
 json_data = {"name":"Ta","age":100}
@@ -31,12 +31,37 @@ json_data = load_json(json_file)
 #### Draw 2D points onto an image
 ```python
 import cv2
-from tacv.visual.draw2d import draw_points
+from tacv.visual import draw_points
 image = cv2.imread("myimage.jpg")
 points = [(18,19),(55,55),(102,22),(66,22)]
 draw_points(image,points,circular=True,color=(0,255,0),thickness=2)
 cv2.imwrite("new_image.jpg",image)
 ```
+### Video
+#### Synthesize a video from images
+```python
+from tacv.video import images2video
+image_dir = "my_images" #directory containing images in the same format
+video_path = "tacv_test.mp4" #path to save the synthesized video
+images2video(image_dir,video_path)
+```
+#### Extract images from a video
+```python
+from tacv.video import video2images
+video_path = "tacv_test.mp4" #path to video to be extracted to images
+image_dir = "my_images" #directory to save the extracted images
+video2images(video_path,image_dir)
+```
+### Command Line Interface
 
+#### Synthesize a video from images
+```bash
+tacv_i2v image_dir video_path [optional: fps image_ext]
+```
+#### Extract images from a video
+```bash
+tacv_v2i video_path image_dir
+```
 ### For more
-Visit `test.py` file
+* Visit args description in source code 
+* Visit `test.py` file
