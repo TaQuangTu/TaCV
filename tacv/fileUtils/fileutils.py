@@ -1,7 +1,7 @@
 import os
 import json
 
-IMAGE_EXT = [".png", ".PNG", ".jpeg", ".JPEG", ".jpg", ".JPG"]
+IMAGE_EXT = ["png", "PNG", "jpeg", "JPEG", "jpg", "JPG"]
 
 
 def get_all_files(dir, recursive=True, exts=None):
@@ -10,6 +10,7 @@ def get_all_files(dir, recursive=True, exts=None):
     for comp in comps:
         full_path = os.path.join(dir, comp)
         file_ext = os.path.splitext(full_path)[1]
+        file_ext = file_ext[1:] # ignore the dot
         if os.path.isdir(full_path):
             if recursive:
                 all_files += get_all_files(full_path, recursive, exts)
