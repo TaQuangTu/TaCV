@@ -40,7 +40,14 @@ def video2images(video_path, output_dir, exist_ok=False, image_ext="jpg", verbos
     return True
 
 
-def images2video(image_dir, video_path, fps=24,image_ext: str=None, sort=False, **kwargs):
+def images2video(image_dir, video_path, fps=24, image_ext: str = None, sort=False, **kwargs):
+    if isinstance(fps, str):
+        fps = int(float(fps))
+    if isinstance(sort, str):
+        if sort == "False" or sort == "false":
+            sort = False
+        else:
+            sort = "True"
     if not os.path.exists(image_dir):
         print(f"Image dir {image_dir} does not exist")
         return False
@@ -57,9 +64,9 @@ def images2video(image_dir, video_path, fps=24,image_ext: str=None, sort=False, 
     assert len(frame_paths) > 0, f"There is no image in {image_dir}"
     test_image = cv2.imread(frame_paths[0])
     shape = test_image.shape
-    frame_size = (shape[1],shape[0])
-    video_writer = cv2.VideoWriter(video_path,cv2.VideoWriter_fourcc(*"MJPG"),fps,frame_size)
+    frame_size = (shape[1], shape[0])
 
+    video_writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*"MJPG"), fps, frame_size)
 
     try:
         for frame_path in frame_paths:
