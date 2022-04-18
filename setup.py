@@ -8,7 +8,7 @@ with open("requirements.txt","r") as f:
     required_pkgs = [item.strip() for item in lines]
 setup(
     name='tacv',
-    version='1.0.8',
+    version='1.0.9',
     packages= setuptools.find_packages(where="."),
     url='https://github.com/TaQuangTu/TaCV',
     license='LICENSE',
