@@ -52,6 +52,14 @@ video_path = "tacv_test.mp4" #path to video to be extracted to images
 image_dir = "my_images" #directory to save the extracted images
 video2images(video_path,image_dir)
 ```
+### Geometry
+#### Calculate 2D IOU of two polygons
+```python
+from tacv.geometry import iou_2d
+polygon_1 = [[0,0],[10,10],[0,10]]
+polygon_2 = [[0, 20], [10, 10], [0, 0]]
+print(iou_2d(polygon_1,polygon_2))
+```
 ### Command Line Interface
 
 #### Synthesize a video from images
