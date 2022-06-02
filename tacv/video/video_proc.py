@@ -52,7 +52,7 @@ def images2video(image_dir, video_path, fps=24, image_ext: str = None, sort=Fals
         print(f"Image dir {image_dir} does not exist")
         return False
     video_dir = os.path.dirname(video_path)
-    if not os.path.exists(video_dir):
+    if (not video_dir is "") and (not os.path.exists(video_dir)):
         os.makedirs(video_dir)
     if image_ext is None:
         exts = None
