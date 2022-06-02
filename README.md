@@ -43,15 +43,24 @@ cv2.imwrite("new_image.jpg",image)
 from tacv.video import images2video
 image_dir = "my_images" #directory containing images in the same format
 video_path = "tacv_test.mp4" #path to save the synthesized video
-images2video(image_dir,video_path)
+# common use case
+images2video(image_dir,video_path,fps=24, image_ext = None, sort=False)
 ```
+Parameters:
+* `fps`: default = 24
+* `image_ext`: a string, specify image extension to synthesize the video, for example (`jpg`, `png`,...). If it is `None`. All images will be grabbed. Default is `None`.
+* `sort`: `True` or `False`. Indicate if the images should be sorted by name before synthesizing the video. Default is `True`.
 #### Extract images from a video
 ```python
 from tacv.video import video2images
 video_path = "tacv_test.mp4" #path to video to be extracted to images
 image_dir = "my_images" #directory to save the extracted images
-video2images(video_path,image_dir)
+video2images(video_path,image_dir,exist_ok=False, image_ext="jpg", verbose=True)
 ```
+Parameters:
+* `exist_ok`: default is False. If `image_dir` already contains images and this flag is `False`. The process will be cancel, otherwise it continues.
+* `image_ext`: a string, specify image extension, for example (`jpg`, `png`,...). If it is `None`. All images will be grabbed. Default is `None`.
+* `verbose`: `True` or `False`. Set it to `True` to view the extracting process. Default is `True`.
 ### Geometry
 #### Calculate 2D IOU of two polygons
 ```python
