@@ -1,25 +1,25 @@
 #consts
-input_size: &input_size [ 224,448 ]
-max_object: &max_obj 16
+input_size: &input_size [ 224,448 ]  # Shape of input image (H,W)
+max_object: &max_obj 16    # Maximum number of objects may exist in an image
 num_classes: &num_classes 5
 train_config:
   gpus: 0 # 0 means CPU, N means using N available GPU(s) for training
   epoch: 600
-  batch_size: 32
-  shuffle: True
-  num_workers: 4
   learning_rate: 0.0001
-  lr_decay_milestones: [ 80,160 ]
-  lr_decay_gamma: 0.5
+  batch_size: 32
+  shuffle: True # shuffle training data in  epoch or not
+  num_workers: 4 # number of workers loading data
+  lr_decay_milestones: [ 80,160 ] # epochs where learning rate decay
+  lr_decay_gamma: 0.5 # learning rate decay
   weight_decay: 0.01
   checkpoint_frequency: 1
   amp: True
-  unfreeze_bbone_epoch: 200
+  unfreeze_bbone_epoch: 200 # epoch where the backbone unfreeze
   initial_denom_lr: 5
-  loss_hm_reg_offset_weights: [ 1, 1, 0.1 ]
+  loss_hm_offset_offset_weights: [ 1, 1, 0.1 ]
   callback:
     monitor: "val_loss"
-    dirpath: "logs/exp_name_1"
+    dirpath: "logs/exp_name_1"   # directory where checkpoints are saved
     save_top_k: 20
     mode: "min"
 val_config:
@@ -27,7 +27,7 @@ val_config:
   checkpoint: ""
 model:
   num_classes: *num_classes
-  backbone_layers: 18
-  head_conv_channel: 64
+  backbone_layers: 18    # ResNet layers (18,34,50,101,...)
+  head_conv_channel: 64  # any number, 64 is recommended
   max_object: *max_obj
   input_shape: *input_size

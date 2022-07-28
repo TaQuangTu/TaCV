@@ -36,7 +36,7 @@ with open("requirements.txt", "r") as f:
     required_pkgs = [item.strip() for item in lines]
 
 #version_file = "tacv/resources/version.txt"
-new_ver = "1.1.0" #increase_version_by_one(version_file)
+new_ver = "1.1.1" #increase_version_by_one(version_file)
 print(f"Building {new_ver}")
 setup(
     name='tacv',

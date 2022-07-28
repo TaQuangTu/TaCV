@@ -6,9 +6,14 @@ pip install tacv
 ```
 
 ## Examples
-### 2D Object Detection
 
-For now, CenterNet supported. However, use it as prototype purpose only, there is no official benchmark on accuracy.
+<details>
+<summary> <b>2D Object Detection</b></summary>
+
+For now, CenterNet is supported. However, use it as prototype purpose only, there is no official benchmark on accuracy.
+
+#### Train with your own dataset
+
 * First, create a config file for training/model config, see full config at `tacv/detection/sample_config.yml`.
 ```yaml
 input_size: &input_size [ 224,448 ]
@@ -28,7 +33,7 @@ train_config:
   amp: True
   unfreeze_bbone_epoch: 200
   initial_denom_lr: 5
-  loss_hm_reg_offset_weights: [ 1, 1, 0.1 ]
+  loss_hm_offset_offset_weights: [ 1, 1, 0.1 ]
   callback:
     monitor: "val_loss"
     dirpath: "logs/exp_name_1"
@@ -50,12 +55,15 @@ from torch.utils.data import Dataset
 import torch
 
 class MockDataset(Dataset):
-    def __init__(self, max_objs):
+    def __init__(self, max_objs, input_shape_HW):
         self.max_objs = max_objs
-
+        self.input_shape_HW = input_shape_HW
     def __getitem__(self, item):
-        image = torch.rand(3, 224, 448)  # Shape = (3, H, W)
-        annos = torch.rand(self.max_objs, 5)  # Shape = (MaxObjs x 5) , each row presents for (x,y,w,h,class_id)
+        # read your image
+        # image = cv2.imread(your image path)
+        # do any transform operation, then return a tensor
+        image = torch.rand(3, self.input_shape_HW[0],self.input_shape_HW[1])  # Shape = (3, InputShape, W)
+        annos = torch.rand(self.max_objs, 5)  # Shape = (MaxObjs x 5) , each row presents for (x,y,w,h,class_id) relative to input shape
         masks = torch.zeros(
             self.max_objs)  # Shape = (MaxObjs,)  each value is False or True (1 indicates having object)
         masks[0:3] = True
@@ -70,13 +78,40 @@ from tacv.detection import CenterNetTrainer
 from torch.utils.data import random_split
 
 config_path = "tacv/detection/sample_config.yml"
-dataset = MockDataset(max_objs=16)  # Replace with your custom dataset
-train_set, val_set = random_split(dataset, [len(dataset)*0.9, len(dataset)-len(dataset)*0.9])
+max_objs = 16 # read from config file
+input_shape = (224,448) # read from config file
+dataset = MockDataset(max_objs=max_objs,input_shape_HW = input_shape)  # Replace with your custom dataset
+train_set, val_set = random_split(dataset, [900, 100])
 
 trainer = CenterNetTrainer(train_set, val_set, config_path)
 trainer.train()
 ```
-* Finally, do inference (TO BE UPDATED after coffee time).
+#### Inference on single image
+
+```python
+import cv2
+import torch
+from tacv.detection import load_centernet_model_with_config
+from tacv.detection import infer
+
+if __name__ == "__main__":
+    config_path = "/home/tu/Projects/PycharmProjects/TaCV/tacv/detection/sample_config.yml"
+
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    model = load_centernet_model_with_config(config_path, load_bbone_pretrained=False)
+    model.load_state_dict("your_checkpoint.pth")
+    model.eval()
+    model.to(device)
+
+    image = cv2.imread("your_image.png")
+    bboxes = infer(model, image, device)
+    print(bboxes) # list of detections in format (xc,yc,w,h,class_id,confidence_score)
+```
+
+</details>
+
+<details>
+<summary> <b>File utils</b></summary>
 
 ### File utils
 #### Get all file paths from a directory
@@ -99,7 +134,11 @@ save_json(json_file,json_data)
 # load json
 json_data = load_json(json_file)
 ```
-### Visual
+</details>
+
+<details>
+<summary> <b>CV2 Visualization</b></summary>
+
 #### Draw 2D points onto an image
 ```python
 import cv2
@@ -109,7 +148,11 @@ points = [(18,19),(55,55),(102,22),(66,22)]
 draw_points(image,points,circular=True,color=(0,255,0),thickness=2)
 cv2.imwrite("new_image.jpg",image)
 ```
-### Video
+</details>
+
+<details>
+<summary> <b>Video and image utils</b></summary>
+
 #### Synthesize a video from images
 ```python
 from tacv.video import images2video
@@ -133,7 +176,11 @@ Parameters:
 * `exist_ok`: default is False. If `image_dir` already contains images and this flag is `False`. The process will be cancel, otherwise it continues.
 * `image_ext`: a string, specify image extension, for example (`jpg`, `png`,...). If it is `None`. All images will be grabbed. Default is `None`.
 * `verbose`: `True` or `False`. Set it to `True` to view the extracting process. Default is `True`.
-### Geometry
+</details>
+
+<details>
+<summary> <b>Geometry utils</b></summary>
+
 #### Calculate 2D IOU of two polygons
 ```python
 from tacv.geometry import iou_2d
@@ -141,7 +188,9 @@ polygon_1 = [[0,0],[10,10],[0,10]]
 polygon_2 = [[0, 20], [10, 10], [0, 0]]
 print(iou_2d(polygon_1,polygon_2))
 ```
-### Command Line Interface
+</details>
+<details>
+<summary> <b>Command Line Interface</b></summary>
 
 #### Synthesize a video from images
 ```bash
@@ -151,6 +200,8 @@ tacv_i2v image_dir video_path [optional: fps image_ext]
 ```bash
 tacv_v2i video_path image_dir
 ```
+</details>
+
 ### For more
 * Visit args description in source code 
 * Visit `test.py` file
