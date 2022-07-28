@@ -1,0 +1,33 @@
+#consts
+input_size: &input_size [ 224,448 ]
+max_object: &max_obj 16
+num_classes: &num_classes 5
+train_config:
+  gpus: 0 # 0 means CPU, N means using N available GPU(s) for training
+  epoch: 600
+  batch_size: 32
+  shuffle: True
+  num_workers: 4
+  learning_rate: 0.0001
+  lr_decay_milestones: [ 80,160 ]
+  lr_decay_gamma: 0.5
+  weight_decay: 0.01
+  checkpoint_frequency: 1
+  amp: True
+  unfreeze_bbone_epoch: 200
+  initial_denom_lr: 5
+  loss_hm_reg_offset_weights: [ 1, 1, 0.1 ]
+  callback:
+    monitor: "val_loss"
+    dirpath: "logs/exp_name_1"
+    save_top_k: 20
+    mode: "min"
+val_config:
+  batch_size: 1
+  checkpoint: ""
+model:
+  num_classes: *num_classes
+  backbone_layers: 18
+  head_conv_channel: 64
+  max_object: *max_obj
+  input_shape: *input_size

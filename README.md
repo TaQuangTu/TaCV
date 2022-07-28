@@ -6,6 +6,78 @@ pip install tacv
 ```
 
 ## Examples
+### 2D Object Detection
+
+For now, CenterNet supported. However, use it as prototype purpose only, there is no official benchmark on accuracy.
+* First, create a config file for training/model config, see full config at `tacv/detection/sample_config.yml`.
+```yaml
+input_size: &input_size [ 224,448 ]
+max_object: &max_obj 16
+num_classes: &num_classes 5
+train_config:
+  gpus: 0 # 0 means CPU, N means using N available GPU(s) for training
+  epoch: 600
+  batch_size: 32
+  shuffle: True
+  num_workers: 4
+  learning_rate: 0.0001
+  lr_decay_milestones: [ 80,160 ]
+  lr_decay_gamma: 0.5
+  weight_decay: 0.01
+  checkpoint_frequency: 1
+  amp: True
+  unfreeze_bbone_epoch: 200
+  initial_denom_lr: 5
+  loss_hm_reg_offset_weights: [ 1, 1, 0.1 ]
+  callback:
+    monitor: "val_loss"
+    dirpath: "logs/exp_name_1"
+    save_top_k: 20
+    mode: "min"
+val_config:
+  batch_size: 1
+  checkpoint: ""
+model:
+  num_classes: *num_classes
+  backbone_layers: 18
+  head_conv_channel: 64
+  max_object: *max_obj
+  input_shape: *input_size
+```
+* Second, create your own Dataset class that returns data as described in the `__getitem__()` method, see following example:
+```python
+from torch.utils.data import Dataset
+import torch
+
+class MockDataset(Dataset):
+    def __init__(self, max_objs):
+        self.max_objs = max_objs
+
+    def __getitem__(self, item):
+        image = torch.rand(3, 224, 448)  # Shape = (3, H, W)
+        annos = torch.rand(self.max_objs, 5)  # Shape = (MaxObjs x 5) , each row presents for (x,y,w,h,class_id)
+        masks = torch.zeros(
+            self.max_objs)  # Shape = (MaxObjs,)  each value is False or True (1 indicates having object)
+        masks[0:3] = True
+        return {"image": image, "annos": annos, "masks": masks}
+
+    def __len__(self):
+        return 1000
+```
+* Init `CenterNetTrainer` and here we go
+```python
+from tacv.detection import CenterNetTrainer
+from torch.utils.data import random_split
+
+config_path = "tacv/detection/sample_config.yml"
+dataset = MockDataset(max_objs=16)  # Replace with your custom dataset
+train_set, val_set = random_split(dataset, [len(dataset)*0.9, len(dataset)-len(dataset)*0.9])
+
+trainer = CenterNetTrainer(train_set, val_set, config_path)
+trainer.train()
+```
+* Finally, do inference (TO BE UPDATED after coffee time).
+
 ### File utils
 #### Get all file paths from a directory
 ```python
