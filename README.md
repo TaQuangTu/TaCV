@@ -33,7 +33,7 @@ train_config:
   amp: True
   unfreeze_bbone_epoch: 200
   initial_denom_lr: 5
-  loss_hm_offset_offset_weights: [ 1, 1, 0.1 ]
+  loss_hm_offset_wh_weights: [ 1, 1, 0.1 ]
   callback:
     monitor: "val_loss"
     dirpath: "logs/exp_name_1"

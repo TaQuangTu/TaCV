@@ -28,9 +28,9 @@ class CenterNet(LightningModule):
         self.down_ratio_y = 4
         self.calculate_hm_shape()
         self.train_config = train_config
-        self.loss_hm_offset_offset_weights = [1, 1, 0.1]
+        self.loss_hm_offset_wh_weights = [1, 1, 0.1]
         if train_config is not None:
-            self.loss_hm_offset_offset_weights = train_config["loss_hm_offset_offset_weights"]
+            self.loss_hm_offset_wh_weights = train_config["loss_hm_offset_wh_weights"]
 
     def calculate_hm_shape(self):
         mock_input = torch.rand(1, 3, self.input_shape[0], self.input_shape[1])
@@ -98,11 +98,11 @@ class CenterNet(LightningModule):
         pred_hm, pred_reg = self.gather_output(annos, masks, batch_size, model_output)
         pred_offset = pred_reg[:, :, :2]
         pred_wh = pred_reg[:, :, 2:]
-        loss_hm = centerness_loss(gt_hm, pred_hm) * self.loss_hm_offset_offset_weights[0]
+        loss_hm = centerness_loss(gt_hm, pred_hm) * self.loss_hm_offset_wh_weights[0]
         loss_offset = binary_cross_entropy(pred_offset, gt_offset, reduction="none") * masks / (num_objs + 0.0001)
         loss_wh = mse_loss(pred_wh, gt_wh, reduction="none") * masks / (num_objs + 0.0001)
-        loss_offset = loss_offset.sum() * self.loss_hm_offset_offset_weights[1]
-        loss_wh = loss_wh.sum() * self.loss_hm_offset_offset_weights[2]
+        loss_offset = loss_offset.sum() * self.loss_hm_offset_wh_weights[1]
+        loss_wh = loss_wh.sum() * self.loss_hm_offset_wh_weights[2]
         total = loss_hm + loss_offset + loss_wh
         print("Losses:", f"Train Loss hm: {loss_hm}, Loss offset: {loss_offset}, Loss wh: {loss_wh}")
         return total
@@ -122,11 +122,11 @@ class CenterNet(LightningModule):
         pred_hm, pred_reg = self.gather_output(annos, masks, batch_size, model_output)
         pred_offset = pred_reg[:, :, :2]
         pred_wh = pred_reg[:, :, 2:]
-        loss_hm = centerness_loss(gt_hm, pred_hm) * self.loss_hm_offset_offset_weights[0]
+        loss_hm = centerness_loss(gt_hm, pred_hm) * self.loss_hm_offset_wh_weights[0]
         loss_offset = binary_cross_entropy(pred_offset, gt_offset, reduction="none") * masks / (num_objs + 0.0001)
         loss_wh = mse_loss(pred_wh, gt_wh, reduction="none") * masks / (num_objs + 0.0001)
-        loss_offset = loss_offset.sum() * self.loss_hm_offset_offset_weights[1]
-        loss_wh = loss_wh.sum() * self.loss_hm_offset_offset_weights[2]
+        loss_offset = loss_offset.sum() * self.loss_hm_offset_wh_weights[1]
+        loss_wh = loss_wh.sum() * self.loss_hm_offset_wh_weights[2]
         total = loss_hm + loss_offset + loss_wh
         print("Val:", f"Train Loss hm: {loss_hm}, Loss offset: {loss_offset}, Loss wh: {loss_wh}")
         self.log("val_loss", total)

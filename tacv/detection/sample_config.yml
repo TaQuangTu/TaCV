@@ -16,7 +16,7 @@ train_config:
   amp: True
   unfreeze_bbone_epoch: 200 # epoch where the backbone unfreeze
   initial_denom_lr: 5
-  loss_hm_offset_offset_weights: [ 1, 1, 0.1 ]
+  loss_hm_offset_wh_weights: [ 1, 1, 0.1 ]  # modify these factors to weight heatmap loss, offset loss, and bbox shape loss (w and h)
   callback:
     monitor: "val_loss"
     dirpath: "logs/exp_name_1"   # directory where checkpoints are saved
