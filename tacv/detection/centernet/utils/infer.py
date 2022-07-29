@@ -55,10 +55,10 @@ def infer(model: CenterNet, image: np.ndarray, device="cpu"):
         xint = int(xint)
         offsetx = float(offsetx)
         offsety = float(offsety)
-        w = float(w)
-        h = float(h)
+        w = float(w) * down_scale_w
+        h = float(h) * down_scale_h
         score = round(float(score), 2)
-        xc = (xint + offsetx) * down_scale_w
-        yc = (yint + offsety) * down_scale_h
+        xc = (xint + offsetx) * down_scale_w * model.down_ratio_x
+        yc = (yint + offsety) * down_scale_h * model.down_ratio_y
         res.append([xc, yc, w, h, class_id, score])
     return res
