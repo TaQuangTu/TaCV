@@ -6,8 +6,6 @@ import time
 from queue import Queue
 from urllib.request import urlopen
 
-from attr.validators import instance_of
-
 
 class ThreadedDownload(object):
     REGEX = {
@@ -123,7 +121,7 @@ class ThreadedDownload(object):
         elif hasattr(self.directory_structure, '__len__') and len(self.directory_structure) == 2:
             # User supplied a custom regex replace
             regex = self.directory_structure[0]
-            if instance_of(regex, str):
+            if isinstance(regex, str):
                 regex = re.compile(str)
             replace = self.directory_structure[1]
             file_destination = '%s%s' % (self.destination, regex.sub(replace, url))
