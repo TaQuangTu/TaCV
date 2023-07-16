@@ -1,4 +1,4 @@
-from tacv.fileUtils import ThreadedDownload# TACV - A mini package for daily tasks
+# TACV - A mini package for daily tasks
 
 ## Installation
 
