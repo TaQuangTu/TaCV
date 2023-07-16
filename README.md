@@ -6,6 +6,8 @@ from tacv.fileUtils import ThreadedDownload# TACV - A mini package for daily tas
 pip install tacv
 ```
 
+Some specific functions depend on other libraries (.e.g `mlflow`, `torch`, `pytorch-lightning`). Be forgiving and install the necessary libraries if required.
+
 ## Examples
 
 <details>
