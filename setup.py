@@ -39,7 +39,7 @@ with open("requirements.txt", "r") as f:
     required_pkgs = [item.strip() for item in lines]
 
 # version_file = "tacv/resources/version.txt"
-new_ver = "1.1.5"  # increase_version_by_one(version_file)
+new_ver = "1.1.8"  # increase_version_by_one(version_file)
 print(f"Building {new_ver}")
 setup(
     name='tacv',
@@ -47,7 +47,7 @@ setup(
     packages=setuptools.find_packages(where="."),
     url='https://github.com/TaQuangTu/TaCV',
     license='LICENSE',
-    author='TaQuangTu',
+    author='QuangTu-Ta',
     install_requires=required_pkgs,
     author_email='taquangtu132@gmail.com',
     description='A mini package for daily tasks',
