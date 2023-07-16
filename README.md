@@ -1,11 +1,62 @@
-# TACV - A mini package for daily tasks
+from tacv.fileUtils import ThreadedDownload# TACV - A mini package for daily tasks
 
 ## Installation
+
 ```bash
 pip install tacv
 ```
 
 ## Examples
+
+<details>
+<summary> <b>LoRA training</b></summary>
+
+Adding LoRA to your model and start training as usual with minimal code changes.
+
+1. Define a boilerplate class that inherit both AnyLoRA and the model you want to play, in this case GPTNeoForCausalLM
+
+```python
+from tacv.torch import AnyLoRA
+from transformers import GPTNeoForCausalLM
+
+
+class GPTNeoLoRA(GPTNeoForCausalLM, AnyLoRA):
+    def __init__(self, config):
+        GPTNeoForCausalLM.__init__(self, config)
+```
+
+2. Add LoRA to layers that you think it could bring the training benefit, here we choose the Key and Value matrices in
+   all self-attention blocks
+
+```python
+# init your LoRA model
+model = GPTNeoLoRA.from_pretrained("EleutherAI/gpt-neo-1.3B", low_cpu_mem_usage=True)
+
+model.init_lora(rank=8, layers_contain=["k_proj", "v_proj"])
+
+# Also give "layers_end_with" and "layers_start_with" a try
+model.init_lora(rank=4, layers_end_with="q_proj", layers_start_with="wte")
+
+# drop grad of all other layers before training
+model.mark_only_lora_as_trainable(bias="none")
+```
+
+3. The rest of training is as usual, just as you have done before using AnyLoRA.
+4. Save and load LoRA weights.
+
+```python
+# save LoRA
+model.save_lora("lora.pth")
+# load LoRA for inference
+model.load_lora("lora.pth")
+```
+
+Want more control over the training and mode behavior, visit my example of fine-tuning a GPT-Neo model for Vietnamese
+at `tacv/torch/example_lora.py`
+
+
+</details>
+
 
 <details>
 <summary> <b>2D Object Detection</b></summary>
@@ -15,6 +66,7 @@ For now, CenterNet is supported. However, use it as prototype purpose only, ther
 #### Train with your own dataset
 
 * First, create a config file for training/model config, see full config at `tacv/detection/sample_config.yml`.
+
 ```yaml
 input_size: &input_size [ 224,448 ]
 max_object: &max_obj 16
@@ -49,21 +101,27 @@ model:
   max_object: *max_obj
   input_shape: *input_size
 ```
-* Second, create your own Dataset class that returns data as described in the `__getitem__()` method, see following example:
+
+* Second, create your own Dataset class that returns data as described in the `__getitem__()` method, see following
+  example:
+
 ```python
 from torch.utils.data import Dataset
 import torch
+
 
 class MockDataset(Dataset):
     def __init__(self, max_objs, input_shape_HW):
         self.max_objs = max_objs
         self.input_shape_HW = input_shape_HW
+
     def __getitem__(self, item):
         # read your image
         # image = cv2.imread(your image path)
         # do any transform operation, then return a tensor
-        image = torch.rand(3, self.input_shape_HW[0],self.input_shape_HW[1])  # Shape = (3, InputShape, W)
-        annos = torch.rand(self.max_objs, 5)  # Shape = (MaxObjs x 5) , each row presents for (x,y,w,h,class_id) relative to input shape
+        image = torch.rand(3, self.input_shape_HW[0], self.input_shape_HW[1])  # Shape = (3, InputShape, W)
+        annos = torch.rand(self.max_objs,
+                           5)  # Shape = (MaxObjs x 5) , each row presents for (x,y,w,h,class_id) relative to input shape
         masks = torch.zeros(
             self.max_objs)  # Shape = (MaxObjs,)  each value is False or True (1 indicates having object)
         masks[0:3] = True
@@ -72,20 +130,23 @@ class MockDataset(Dataset):
     def __len__(self):
         return 1000
 ```
+
 * Init `CenterNetTrainer` and here we go
+
 ```python
 from tacv.detection import CenterNetTrainer
 from torch.utils.data import random_split
 
 config_path = "tacv/detection/sample_config.yml"
-max_objs = 16 # read from config file
-input_shape = (224,448) # read from config file
-dataset = MockDataset(max_objs=max_objs,input_shape_HW = input_shape)  # Replace with your custom dataset
+max_objs = 16  # read from config file
+input_shape = (224, 448)  # read from config file
+dataset = MockDataset(max_objs=max_objs, input_shape_HW=input_shape)  # Replace with your custom dataset
 train_set, val_set = random_split(dataset, [900, 100])
 
 trainer = CenterNetTrainer(train_set, val_set, config_path)
 trainer.train()
 ```
+
 #### Inference on single image
 
 ```python
@@ -105,7 +166,7 @@ if __name__ == "__main__":
 
     image = cv2.imread("your_image.png")
     bboxes = infer(model, image, device)
-    print(bboxes) # list of detections in format (xc,yc,w,h,class_id,confidence_score)
+    print(bboxes)  # list of detections in format (xc,yc,w,h,class_id,confidence_score)
 ```
 
 </details>
@@ -114,94 +175,145 @@ if __name__ == "__main__":
 <summary> <b>File utils</b></summary>
 
 ### File utils
+
 #### Get all file paths from a directory
+
 ```python
 from tacv.fileUtils import get_all_files
+
 file_paths = get_all_files("dir_name")
 ```
+
 Returns a list of file absolute paths, for example
+
 ```
 ['./venvCondaTest/x86_64-conda_cos6-linux-gnu/bin/ld', './venvCondaTest/conda-meta/_libgcc_mutex-0.1-main.json', './venvCondaTest/conda-meta/xz-5.2.5-h7b6447c_0.json', './venvCondaTest/conda-meta/wheel-0.37.1-pyhd3eb1b0_0.json', './venvCondaTest/conda-meta/setuptools-58.0.4-py36h06a4308_0.json', './venvCondaTest/conda-meta/ca-certificates-2021.10.26-h06a4308_2.json', './venvCondaTest/conda-meta/readline-8.1.2-h7f8727e_1.json', './venvCondaTest/conda-meta/sqlite-3.37.2-hc218d9a_0.json', './venvCondaTest/conda-meta/libgcc-ng-9.3.0-h5101ec6_17.json', './venvCondaTest/conda-meta/ncurses-6.3-h7f8727e_2.json']
 ```
+
 #### Save/load json data to/from file
+
 ```python
-from tacv.fileUtils import save_json,load_json
+from tacv.fileUtils import save_json, load_json
 
 json_file = "myfile.json"
-json_data = {"name":"Ta","age":100}
+json_data = {"name": "Ta", "age": 100}
 # save json
-save_json(json_file,json_data)
+save_json(json_file, json_data)
 # load json
 json_data = load_json(json_file)
 ```
+
+#### Multi-threaded file downloader
+
+```python
+from tacv.fileUtils import ThreadedDownload
+
+urls = [
+    'http://localhost:11223/210207000111980_3_124202.jpg',
+    'http://localhost:11223/210430000373373_3_407200.jpg',
+    'http://localhost:11223/210426000324979_3_356188.jpg',
+    'http://localhost:11223/200819000060994_3_78314.png'
+]
+downloader = ThreadedDownload(urls, "/home/tu/Desktop/LabelStudio", False, thread_count=3, url_tries=3)
+
+print(f'Downloading {len(urls)} files')
+downloader.run()
+print(f'Downloaded {len(downloader.report["success"])} of {len(urls)}')
+```
+
 </details>
 
 <details>
 <summary> <b>CV2 Visualization</b></summary>
 
 #### Draw 2D points onto an image
+
 ```python
 import cv2
 from tacv.visual import draw_points
+
 image = cv2.imread("myimage.jpg")
-points = [(18,19),(55,55),(102,22),(66,22)]
-draw_points(image,points,circular=True,color=(0,255,0),thickness=2)
-cv2.imwrite("new_image.jpg",image)
+points = [(18, 19), (55, 55), (102, 22), (66, 22)]
+draw_points(image, points, circular=True, color=(0, 255, 0), thickness=2)
+cv2.imwrite("new_image.jpg", image)
 ```
+
 </details>
 
 <details>
 <summary> <b>Video and image utils</b></summary>
 
 #### Synthesize a video from images
+
 ```python
 from tacv.video import images2video
-image_dir = "my_images" #directory containing images in the same format
-video_path = "tacv_test.mp4" #path to save the synthesized video
+
+image_dir = "my_images"  # directory containing images in the same format
+video_path = "tacv_test.mp4"  # path to save the synthesized video
 # common use case
-images2video(image_dir,video_path,fps=24, image_ext = None, sort=False)
+images2video(image_dir, video_path, fps=24, image_ext=None, sort=False)
 ```
+
 Parameters:
+
 * `fps`: default = 24
-* `image_ext`: a string, specify image extension to synthesize the video, for example (`jpg`, `png`,...). If it is `None`. All images will be grabbed. Default is `None`.
-* `sort`: `True` or `False`. Indicate if the images should be sorted by name before synthesizing the video. Default is `True`.
+* `image_ext`: a string, specify image extension to synthesize the video, for example (`jpg`, `png`,...). If it
+  is `None`. All images will be grabbed. Default is `None`.
+* `sort`: `True` or `False`. Indicate if the images should be sorted by name before synthesizing the video. Default
+  is `True`.
+
 #### Extract images from a video
+
 ```python
 from tacv.video import video2images
-video_path = "tacv_test.mp4" #path to video to be extracted to images
-image_dir = "my_images" #directory to save the extracted images
-video2images(video_path,image_dir,exist_ok=False, image_ext="jpg", verbose=True)
+
+video_path = "tacv_test.mp4"  # path to video to be extracted to images
+image_dir = "my_images"  # directory to save the extracted images
+video2images(video_path, image_dir, exist_ok=False, image_ext="jpg", verbose=True)
 ```
+
 Parameters:
-* `exist_ok`: default is False. If `image_dir` already contains images and this flag is `False`. The process will be cancel, otherwise it continues.
-* `image_ext`: a string, specify image extension, for example (`jpg`, `png`,...). If it is `None`. All images will be grabbed. Default is `None`.
+
+* `exist_ok`: default is False. If `image_dir` already contains images and this flag is `False`. The process will be
+  cancel, otherwise it continues.
+* `image_ext`: a string, specify image extension, for example (`jpg`, `png`,...). If it is `None`. All images will be
+  grabbed. Default is `None`.
 * `verbose`: `True` or `False`. Set it to `True` to view the extracting process. Default is `True`.
+
 </details>
 
 <details>
 <summary> <b>Geometry utils</b></summary>
 
 #### Calculate 2D IOU of two polygons
+
 ```python
 from tacv.geometry import iou_2d
-polygon_1 = [[0,0],[10,10],[0,10]]
+
+polygon_1 = [[0, 0], [10, 10], [0, 10]]
 polygon_2 = [[0, 20], [10, 10], [0, 0]]
-print(iou_2d(polygon_1,polygon_2))
+print(iou_2d(polygon_1, polygon_2))
 ```
+
 </details>
 <details>
 <summary> <b>Command Line Interface</b></summary>
 
 #### Synthesize a video from images
+
 ```bash
 tacv_i2v image_dir video_path [optional: fps image_ext]
 ```
+
 #### Extract images from a video
+
 ```bash
 tacv_v2i video_path image_dir
 ```
+
 </details>
 
 ### For more
-* Visit args description in source code 
+
+* Visit args description in source code
 * Visit `test.py` file
